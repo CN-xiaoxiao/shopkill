@@ -24,4 +24,7 @@ public class ItemKill {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
     private Date createTime;
 
+    private String itemName;
+
+    private Integer canKill;
 }

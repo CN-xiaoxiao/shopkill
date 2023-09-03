@@ -2,5 +2,34 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.xiaoxiao.model.mapper.ItemMapper">
+    <insert id="add">
+        insert into item (name, code, stock, purchase_time, is_active, create_time)
+        values (#{name}, #{code}, #{stock}, #{purchaseTime}, #{isActive}, #{createTime})
+    </insert>
 
+    <update id="updateById">
+        update item set name = #{name}, code = #{code}, stock = #{stock}, purchase_time = #{purchaseTime},
+                        is_active = #{isActive}, create_time = #{createTime}, update_time = #{updateTime}
+            where id = #{id}
+    </update>
+    <delete id="deleteById">
+        delete from item where id = #{id}
+    </delete>
+
+    <select id="selectByPageAndCondition" resultType="com.xiaoxiao.model.entity.Item">
+        select id, name, code, stock, purchase_time, is_active, create_time, update_time from item
+        <where>
+            <if test="name != null">
+                name like "%" #{name} "%"
+            </if>
+        </where>
+    </select>
+    <select id="selectItemByItemName" resultType="com.xiaoxiao.model.entity.Item">
+        select id, name, code, stock, purchase_time, is_active, create_time, update_time from item
+            where name = #{name}
+    </select>
+    <select id="selectItemByItemId" resultType="com.xiaoxiao.model.entity.Item">
+        select id, name, code, stock, purchase_time, is_active, create_time, update_time from item
+            where id = #{id}
+    </select>
 </mapper>

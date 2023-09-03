@@ -2,5 +2,38 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.xiaoxiao.model.mapper.ItemKillMapper">
+    <update id="updateKillItem">
+        update item_kill
+            set total = total - 1
+        where id = #{killId}
+    </update>
 
+    <select id="selectByPageAndCondition" resultType="com.xiaoxiao.model.entity.ItemKill">
+        select a.*, b.name AS itemName,
+               (CASE WHEN (now() BETWEEN a.start_time AND a.end_time AND a.total >0)
+                   THEN 1
+                ELSE 0
+                END) AS canKill
+        from item_kill AS a LEFT JOIN item AS b ON b.id = a.item_id
+            <where>
+                a.is_active = 1
+                <if test="itemName != null">
+                    and b.name like "%" #{itemName} "%"
+                </if>
+            </where>
+    </select>
+
+    <select id="selectById" resultType="com.xiaoxiao.model.entity.ItemKill">
+        SELECT
+            a.*,
+            b.name AS itemName,
+            (
+                CASE WHEN (now() BETWEEN a.start_time AND a.end_time AND a.total > 0)
+                   THEN 1
+                ELSE 0
+                END
+                ) AS canKill
+        FROM item_kill AS a LEFT JOIN item AS b ON b.id = a.item_id
+        WHERE a.is_active = 1 AND a.id= #{killId}
+    </select>
 </mapper>
