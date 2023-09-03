@@ -8,6 +8,7 @@ import com.xiaoxiao.model.entity.ItemKill;
 import com.xiaoxiao.model.wrap.ItemKillParm;
 import com.xiaoxiao.server.service.IItemKillService;
 import jakarta.annotation.Resource;
+import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,11 +23,12 @@ public class ItemKillController {
     /**
      * 秒杀的核心逻辑
      * @param dto
+     * @param result
      * @return
      */
     @PostMapping("/execute")
-    public ResultVo execute(@RequestBody @Validated KillDto dto){
-        if (dto.getKillId()<=0){
+    public ResultVo execute(@RequestBody @Validated KillDto dto, BindingResult result){
+        if (result.hasErrors() || dto.getKillId()<=0){
             return ResultUtils.error("非法的参数", 201);
         }
 
