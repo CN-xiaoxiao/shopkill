@@ -10,9 +10,11 @@ import com.xiaoxiao.model.mapper.ItemKillSuccessMapper;
 import com.xiaoxiao.model.wrap.ItemKillParm;
 import com.xiaoxiao.model.wrap.ItemParm;
 import com.xiaoxiao.server.service.IItemKillService;
+import com.xiaoxiao.server.service.RabbitSenderService;
 import com.xiaoxiao.server.utils.IdGenerator;
 import jakarta.annotation.Resource;
 import org.joda.time.DateTime;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,6 +27,9 @@ public class ItemKillServiceImpl implements IItemKillService {
 
     @Resource
     private ItemKillSuccessMapper itemKillSuccessMapper;
+
+    @Resource
+    private RabbitSenderService rabbitSenderService;
 
     @Override
     public PageInfo<ItemKill> selectQuestionInfoListByCondition(ItemKillParm itemKillParm) {
@@ -68,7 +73,9 @@ public class ItemKillServiceImpl implements IItemKillService {
     private void commonRecordKillSuccessInfo(ItemKill itemKill, Integer userId) {
         ItemKillSuccess itemKillSuccess = new ItemKillSuccess();
 
-        itemKillSuccess.setCode(String.valueOf(new IdGenerator(2,3).getId()));
+        String orderNo = String.valueOf(new IdGenerator(2,3).getId());
+
+        itemKillSuccess.setCode(orderNo);
         itemKillSuccess.setItemId(itemKill.getItemId());
         itemKillSuccess.setKillId(itemKill.getId());
         itemKillSuccess.setUserId(userId.toString());
@@ -79,6 +86,7 @@ public class ItemKillServiceImpl implements IItemKillService {
 
         if (res > 0) {
             // TODO 进行异步邮件消息的通知
+            rabbitSenderService.sendKillSuccessEmailMsg(orderNo);
         }
 
     }

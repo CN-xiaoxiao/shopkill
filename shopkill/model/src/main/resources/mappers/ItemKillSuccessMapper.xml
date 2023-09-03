@@ -17,4 +17,12 @@
         AND kill_id = #{killId}
         AND `status` IN (0)
     </select>
+
+    <select id="selectByCode" resultType="com.xiaoxiao.model.dto.ItemKillSuccessUserInfo">
+        select a.*, b.user_name, b.phone, b.email, c.name AS itemName
+        from item_kill_success AS a
+            LEFT JOIN user b ON b.id = a.user_id
+            LEFT JOIN item c ON c.id = a.item_id
+        WHERE a.code = #{code} AND b.is_active = 1
+    </select>
 </mapper>
