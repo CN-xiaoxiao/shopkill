@@ -4,7 +4,9 @@ import com.github.pagehelper.PageInfo;
 import com.xiaoxiao.api.utils.ResultUtils;
 import com.xiaoxiao.api.utils.ResultVo;
 import com.xiaoxiao.model.entity.Item;
+import com.xiaoxiao.model.entity.ItemKill;
 import com.xiaoxiao.model.wrap.ItemParm;
+import com.xiaoxiao.server.service.IItemKillService;
 import com.xiaoxiao.server.service.IItemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +17,9 @@ public class ItemController {
 
     @Autowired
     private IItemService itemService;
+
+    @Autowired
+    private IItemKillService itemKillService;
 
     /**
      * 添加商品
@@ -96,5 +101,56 @@ public class ItemController {
         PageInfo<Item> itemParmPageInfo = itemService.selectQuestionInfoListByCondition(itemParm);
 
         return ResultUtils.success("查询成功", itemParmPageInfo);
+    }
+
+    /**
+     * 添加新的秒杀商品（真添加）
+     * @param itemKill
+     * @return
+     */
+    @PutMapping("/addKill")
+    public ResultVo setKillItem(@RequestBody ItemKill itemKill) {
+
+        if (itemKill.getItemId() == null || itemKill.getItemId()< 0) {
+            return ResultUtils.error("商品编号错误！");
+        }
+
+        Item itemDao = itemService.selectItemById(itemKill.getItemId());
+        ItemKill itemKillDao = itemKillService.selectItemKillById(itemKill.getItemId() );
+
+        // TODO 判断is_active是否为0，如果是，就不用真正的添加，直接置为1即可
+        if (itemDao == null || itemKillDao != null) {
+            return ResultUtils.error("添加秒杀商品失败！");
+        }
+
+        boolean flag = itemKillService.insertKillItem(itemKill);
+
+        if (flag) {
+            return ResultUtils.success("添加成功！");
+        } else {
+            return ResultUtils.error("添加失败！");
+        }
+    }
+
+    /**
+     * 删除秒杀物品（取消秒杀）伪删除 is_active = 0
+     * @param id 商品编号
+     * @return
+     */
+    @PutMapping("/deleteKill/{id}")
+    public ResultVo deleteKillItem(@PathVariable("id") Integer id) {
+        ItemKill itemKillDao = itemKillService.selectItemKillById(id);
+
+        if (itemKillDao == null) {
+            return ResultUtils.error("删除失败！");
+        }
+
+        boolean flag = itemKillService.updateIsActive(id);
+
+        if (flag) {
+            return ResultUtils.success("删除成功！");
+        } else {
+            return ResultUtils.error("删除失败！");
+        }
     }
 }

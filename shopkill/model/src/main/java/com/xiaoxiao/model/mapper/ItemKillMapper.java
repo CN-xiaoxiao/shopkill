@@ -15,4 +15,10 @@ public interface ItemKillMapper {
     ItemKill selectById(@Param("killId") Integer killId);
 
     int updateKillItem(@Param("killId") Integer killId);
+
+    ItemKill selectOneById(@Param("killId") Integer killId);
+
+    boolean insertKillItem(ItemKill itemKill);
+
+    boolean updateIsActive(@Param("id") Integer id);
 }

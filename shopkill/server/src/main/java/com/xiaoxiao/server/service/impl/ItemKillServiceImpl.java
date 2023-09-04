@@ -205,6 +205,26 @@ public class ItemKillServiceImpl implements IItemKillService {
         return result;
     }
 
+    @Override
+    public ItemKill selectItemKillById(Integer killId) {
+        if (killId == null || killId < 0) {
+            return null;
+        }
+
+        return itemKillMapper.selectOneById(killId);
+    }
+
+    @Override
+    public boolean insertKillItem(ItemKill itemKill) {
+
+        return itemKillMapper.insertKillItem(itemKill);
+    }
+
+    @Override
+    public boolean updateIsActive(Integer id) {
+        return itemKillMapper.updateIsActive(id);
+    }
+
     /**
      * 记录用户秒杀成功后生成的订单，并进行异步邮件消息的通知
      * @param itemKill

@@ -40,7 +40,7 @@ public class ItemKillController {
 
         Integer userId=dto.getUserId();
 
-        Boolean res = itemKillService.killItemRedisson(dto.getKillId(),userId);
+        Boolean res = itemKillService.killItemZookeeper(dto.getKillId(),userId);
 
         if (!res) {
             return ResultUtils.error("商品抢购完毕或不在抢购时间段内", -1);
@@ -64,7 +64,7 @@ public class ItemKillController {
 
         Integer userId=dto.getUserId();
 
-        Boolean res = itemKillService.killItemRedisson(dto.getKillId(),userId);
+        Boolean res = itemKillService.killItemZookeeper(dto.getKillId(),userId);
 
         if (!res) {
             return ResultUtils.error("商品抢购完毕或不在抢购时间段内", -1);

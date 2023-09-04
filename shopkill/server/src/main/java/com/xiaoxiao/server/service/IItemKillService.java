@@ -13,4 +13,10 @@ public interface IItemKillService {
     Boolean killItemRedisson(Integer killId, Integer userId);
 
     Boolean killItemZookeeper(Integer killId, Integer userId);
+
+    ItemKill selectItemKillById(Integer killId);
+
+    boolean insertKillItem(ItemKill itemKill);
+
+    boolean updateIsActive(Integer id);
 }
