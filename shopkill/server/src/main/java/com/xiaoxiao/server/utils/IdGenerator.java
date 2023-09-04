@@ -13,32 +13,38 @@ import java.util.concurrent.atomic.LongAdder;
  */
 public class IdGenerator {
     // 起始时间戳
-    public static final long START_STAMP = DateUtil.get("2023-1-1").getTime();
+    private static final long START_STAMP = DateUtil.get("2023-1-1").getTime();
 
-    public static final long DATA_CENTER_BIT = 5L;
-    public static final long MACHINE_BIT = 5L;
-    public static final long SEQUENCE_BIT = 12L;
+    private static final long DATA_CENTER_BIT = 5L;
+    private static final long MACHINE_BIT = 5L;
+    private static final long SEQUENCE_BIT = 12L;
 
     // 最大值
-    public static final long DATA_CENTER_MAX = ~(-1L << DATA_CENTER_BIT);
-    public static final long MACHINE_MAX = ~(-1L << MACHINE_BIT);
-    public static final long SEQUENCE_MAX = ~(-1L << SEQUENCE_BIT);
+    private static final long DATA_CENTER_MAX = ~(-1L << DATA_CENTER_BIT);
+    private static final long MACHINE_MAX = ~(-1L << MACHINE_BIT);
+    private static final long SEQUENCE_MAX = ~(-1L << SEQUENCE_BIT);
 
-    public static final long TIMESTAMP_LEFT = DATA_CENTER_BIT + MACHINE_BIT + SEQUENCE_BIT;
-    public static final long DATA_CENTER_LEFT = MACHINE_BIT + SEQUENCE_BIT;
-    public static final long MACHINE_LEFT = SEQUENCE_BIT;
+    private static final long TIMESTAMP_LEFT = DATA_CENTER_BIT + MACHINE_BIT + SEQUENCE_BIT;
+    private static final long DATA_CENTER_LEFT = MACHINE_BIT + SEQUENCE_BIT;
+    private static final long MACHINE_LEFT = SEQUENCE_BIT;
 
     private long dataCenterId;
     private long machineId;
     private LongAdder sequenceId = new LongAdder();
     private long lastTimeStamp = -1;
 
-    public IdGenerator(long dataCenterId, long machineId) {
+    private static IdGenerator ID_GENERATOR= new IdGenerator(2,3);
+
+    private IdGenerator(long dataCenterId, long machineId) {
         if (dataCenterId > DATA_CENTER_MAX || machineId > MACHINE_MAX) {
             throw new IllegalArgumentException("传入的机房号或机器号不合法");
         }
         this.dataCenterId = dataCenterId;
         this.machineId = machineId;
+    }
+
+    public static IdGenerator getIdGenerator() {
+        return ID_GENERATOR;
     }
 
     public synchronized long getId() {

@@ -40,7 +40,7 @@ public class ItemKillController {
 
         Integer userId=dto.getUserId();
 
-        Boolean res = itemKillService.killItem(dto.getKillId(),userId);
+        Boolean res = itemKillService.killItemRedisson(dto.getKillId(),userId);
 
         if (!res) {
             return ResultUtils.error("商品抢购完毕或不在抢购时间段内", -1);
@@ -50,6 +50,12 @@ public class ItemKillController {
 
     }
 
+    /**
+     * 压力测试
+     * @param dto
+     * @param result
+     * @return
+     */
     @PostMapping("/execute/lock")
     public ResultVo executeLock(@RequestBody @Validated KillDto dto, BindingResult result){
         if (result.hasErrors() || dto.getKillId()<=0){
@@ -58,7 +64,7 @@ public class ItemKillController {
 
         Integer userId=dto.getUserId();
 
-        Boolean res = itemKillService.killItem(dto.getKillId(),userId);
+        Boolean res = itemKillService.killItemRedisson(dto.getKillId(),userId);
 
         if (!res) {
             return ResultUtils.error("商品抢购完毕或不在抢购时间段内", -1);

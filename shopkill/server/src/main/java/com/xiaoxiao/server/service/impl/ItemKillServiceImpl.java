@@ -8,18 +8,26 @@ import com.xiaoxiao.model.enums.SysConstant;
 import com.xiaoxiao.model.mapper.ItemKillMapper;
 import com.xiaoxiao.model.mapper.ItemKillSuccessMapper;
 import com.xiaoxiao.model.wrap.ItemKillParm;
-import com.xiaoxiao.model.wrap.ItemParm;
 import com.xiaoxiao.server.service.IItemKillService;
 import com.xiaoxiao.server.service.RabbitSenderService;
 import com.xiaoxiao.server.utils.IdGenerator;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.recipes.locks.InterProcessMutex;
 import org.joda.time.DateTime;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Service
+@Slf4j
 public class ItemKillServiceImpl implements IItemKillService {
 
     @Resource
@@ -31,6 +39,17 @@ public class ItemKillServiceImpl implements IItemKillService {
     @Resource
     private RabbitSenderService rabbitSenderService;
 
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
+
+    @Autowired
+    private RedissonClient redissonClient;
+
+    @Autowired
+    private CuratorFramework curatorFramework;
+
+    private static final String PATH_PREFIX = "/kill/zkLock/";
+
     @Override
     public PageInfo<ItemKill> selectQuestionInfoListByCondition(ItemKillParm itemKillParm) {
         //1.分页助手开始分页
@@ -41,24 +60,145 @@ public class ItemKillServiceImpl implements IItemKillService {
         return new PageInfo<>(itemKills, 10);
     }
 
+    /**
+     * 秒杀业务的核心逻辑-使用redis实现分布式锁
+     * @param killId
+     * @param userId
+     * @return
+     */
     @Override
-    public Boolean killItem(Integer killId, Integer userId) {
+    public Boolean killItemRedis(Integer killId, Integer userId) {
         Boolean result=false;
 
         // 判断当前用户是否已经抢购过当前商品
         if (itemKillSuccessMapper.countByKillUserId(killId,userId) <= 0){
-            // 查询待秒杀商品详情
-            ItemKill itemKill=itemKillMapper.selectById(killId);
 
-            // 判断是否可以被秒杀canKill=1?
-            if (itemKill!=null && 1==itemKill.getCanKill() ){
-                // 扣减库存-减一
-                int res=itemKillMapper.updateKillItem(killId);
+            // 使用redis 的原子操作实现分布式锁
+            ValueOperations<String, String> valueOperations = stringRedisTemplate.opsForValue();
+            final String key = new StringBuffer().append(killId).append(userId).append("-RedisLock").toString();
+            final String value = String.valueOf(IdGenerator.getIdGenerator().getId());
+            Boolean aBoolean = valueOperations.setIfAbsent(key, value);
 
-                // 扣减是否成功?是-生成秒杀成功的订单，同时通知用户秒杀成功的消息
-                if (res>0){
-                    commonRecordKillSuccessInfo(itemKill,userId);
-                    result=true;
+            if (aBoolean) {
+
+                stringRedisTemplate.expire(key, 30, TimeUnit.SECONDS);
+
+                try {
+                    // 查询待秒杀商品详情
+                    ItemKill itemKill=itemKillMapper.selectById(killId);
+
+                    // 判断是否可以被秒杀canKill=1?
+                    if (itemKill!=null && 1==itemKill.getCanKill() && itemKill.getTotal() > 0){
+                        // 扣减库存-减一
+                        int res=itemKillMapper.updateKillItem(killId);
+
+                        // 扣减是否成功?是-生成秒杀成功的订单，同时通知用户秒杀成功的消息
+                        if (res>0){
+                            commonRecordKillSuccessInfo(itemKill,userId);
+                            result=true;
+                        }
+                    }
+                } catch (Exception e) {
+                    log.error("秒杀业务出问题了-redis实现分布式锁", e.fillInStackTrace());
+                } finally {
+                    if (value.equals(valueOperations.get(key).toString())) {
+                        stringRedisTemplate.delete(key);
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 秒杀核心-使用Redisson实现分布式锁
+     * @param killId
+     * @param userId
+     * @return
+     */
+    @Override
+    public Boolean killItemRedisson(Integer killId, Integer userId) {
+        Boolean result=false;
+
+        final String key = new StringBuffer().append(killId).append(userId).append("-RedissonLock").toString();
+
+        RLock lock = redissonClient.getLock(key);
+
+        try {
+            boolean bLock = lock.tryLock(30, 10, TimeUnit.SECONDS);
+
+            if (bLock) {
+                // 判断当前用户是否已经抢购过当前商品
+                if (itemKillSuccessMapper.countByKillUserId(killId,userId) <= 0){
+
+                    // 查询待秒杀商品详情
+                    ItemKill itemKill=itemKillMapper.selectById(killId);
+
+                    // 判断是否可以被秒杀canKill=1?
+                    if (itemKill!=null && 1==itemKill.getCanKill() && itemKill.getTotal() > 0){
+                        // 扣减库存-减一
+                        int res=itemKillMapper.updateKillItem(killId);
+
+                        // 扣减是否成功?是-生成秒杀成功的订单，同时通知用户秒杀成功的消息
+                        if (res>0){
+                            commonRecordKillSuccessInfo(itemKill,userId);
+                            result=true;
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error("秒杀业务出问题了-redisson实现分布式锁", e.fillInStackTrace());
+        } finally {
+            lock.unlock();
+        }
+
+        return result;
+    }
+
+    /**
+     * 秒杀核心-使用zooKeep实现分布式锁
+     * @param killId
+     * @param userId
+     * @return
+     */
+    @Override
+    public Boolean killItemZookeeper(Integer killId, Integer userId) {
+
+        Boolean result=false;
+
+        InterProcessMutex mutex = new InterProcessMutex(curatorFramework, PATH_PREFIX+killId+userId+"-lock");
+
+        try {
+
+            if (mutex.acquire(10L, TimeUnit.SECONDS)) {
+                // 判断当前用户是否已经抢购过当前商品
+                if (itemKillSuccessMapper.countByKillUserId(killId,userId) <= 0){
+                    // 查询待秒杀商品详情
+                    ItemKill itemKill=itemKillMapper.selectById(killId);
+
+                    // 判断是否可以被秒杀canKill=1?
+                    if (itemKill!=null && 1==itemKill.getCanKill() && itemKill.getTotal() > 0){
+                        // 扣减库存-减一
+                        int res=itemKillMapper.updateKillItem(killId);
+
+                        // 扣减是否成功?是-生成秒杀成功的订单，同时通知用户秒杀成功的消息
+                        if (res>0){
+                            commonRecordKillSuccessInfo(itemKill,userId);
+                            result=true;
+                        }
+                    }
+                }
+            }
+
+        } catch (Exception e) {
+            log.error("秒杀业务出问题了-zookeeper实现分布式锁", e.fillInStackTrace());
+        } finally {
+            if (mutex!=null) {
+                try {
+                    mutex.release();
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
                 }
             }
         }
@@ -73,7 +213,7 @@ public class ItemKillServiceImpl implements IItemKillService {
     private void commonRecordKillSuccessInfo(ItemKill itemKill, Integer userId) {
         ItemKillSuccess itemKillSuccess = new ItemKillSuccess();
 
-        String orderNo = String.valueOf(new IdGenerator(2,3).getId());
+        String orderNo = String.valueOf(IdGenerator.getIdGenerator().getId());
 
         itemKillSuccess.setCode(orderNo);
         itemKillSuccess.setItemId(itemKill.getItemId());
@@ -82,14 +222,16 @@ public class ItemKillServiceImpl implements IItemKillService {
         itemKillSuccess.setStatus(SysConstant.OrderStatus.SuccessNotPayed.getCode().byteValue());
         itemKillSuccess.setCreateTime(DateTime.now().toDate());
 
-        int res = itemKillSuccessMapper.insert(itemKillSuccess);
+        if (itemKillSuccessMapper.countByKillUserId(itemKill.getId(), userId) <= 0) {
+            int res = itemKillSuccessMapper.insert(itemKillSuccess);
 
-        if (res > 0) {
-            // 进行异步邮件消息的通知
-            rabbitSenderService.sendKillSuccessEmailMsg(orderNo);
+            if (res > 0) {
+                // 进行异步邮件消息的通知
+                rabbitSenderService.sendKillSuccessEmailMsg(orderNo);
 
-            // 加入死信队列，用于超时指定的TTL时间时仍然未支付的订单。
-            rabbitSenderService.sendKillSuccessOrderExpireMsg(orderNo);
+                // 加入死信队列，用于超时指定的TTL时间时仍然未支付的订单。
+                rabbitSenderService.sendKillSuccessOrderExpireMsg(orderNo);
+            }
         }
 
     }

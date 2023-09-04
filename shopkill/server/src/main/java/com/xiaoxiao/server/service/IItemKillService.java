@@ -8,5 +8,9 @@ import org.springframework.stereotype.Service;
 public interface IItemKillService {
     PageInfo<ItemKill> selectQuestionInfoListByCondition(ItemKillParm itemKillParm);
 
-    Boolean killItem(Integer killId, Integer userId);
+    Boolean killItemRedis(Integer killId, Integer userId);
+
+    Boolean killItemRedisson(Integer killId, Integer userId);
+
+    Boolean killItemZookeeper(Integer killId, Integer userId);
 }
