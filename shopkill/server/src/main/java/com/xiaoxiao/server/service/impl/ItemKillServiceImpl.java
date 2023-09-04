@@ -85,8 +85,11 @@ public class ItemKillServiceImpl implements IItemKillService {
         int res = itemKillSuccessMapper.insert(itemKillSuccess);
 
         if (res > 0) {
-            // TODO 进行异步邮件消息的通知
+            // 进行异步邮件消息的通知
             rabbitSenderService.sendKillSuccessEmailMsg(orderNo);
+
+            // 加入死信队列，用于超时指定的TTL时间时仍然未支付的订单。
+            rabbitSenderService.sendKillSuccessOrderExpireMsg(orderNo);
         }
 
     }

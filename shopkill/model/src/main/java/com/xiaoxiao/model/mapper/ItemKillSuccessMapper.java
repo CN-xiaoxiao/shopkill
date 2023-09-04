@@ -13,4 +13,8 @@ public interface ItemKillSuccessMapper {
     int insert(ItemKillSuccess itemKillSuccess);
 
     ItemKillSuccessUserInfo selectByCode(@Param("code") String code);
+
+    ItemKillSuccess selectByPrimaryKey(@Param("code") String code);
+
+    int expireOrder(String code);
 }

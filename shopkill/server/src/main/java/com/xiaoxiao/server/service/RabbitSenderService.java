@@ -68,4 +68,35 @@ public class RabbitSenderService {
             log.error("秒杀成功异步发送邮件通知消息，发生异常，消息为{}", orderNo, e.fillInStackTrace());
         }
     }
+
+    /**
+     * 秒杀成功生成抢购订单，发送消息进入死信队列，等待一定时间失效超时未支付的订单
+     * @param orderCode
+     */
+    public void sendKillSuccessOrderExpireMsg(final String orderCode) {
+        try {
+            if (StringUtils.isNotEmpty(orderCode)) {
+                ItemKillSuccessUserInfo info = itemKillSuccessMapper.selectByCode(orderCode);
+
+                if (info != null) {
+                    rabbitTemplate.setMessageConverter(new Jackson2JsonMessageConverter());
+                    rabbitTemplate.setExchange(env.getProperty("mq.kill.item.success.kill.dead.prod.exchange"));
+                    rabbitTemplate.setRoutingKey(env.getProperty("mq.kill.item.success.kill.dead.prod.routing.key"));
+
+                    rabbitTemplate.convertAndSend(info, message -> {
+                        MessageProperties messageProperties = message.getMessageProperties();
+                        messageProperties.setDeliveryMode(MessageDeliveryMode.PERSISTENT);
+                        messageProperties.setHeader(AbstractJavaTypeMapper.DEFAULT_CONTENT_CLASSID_FIELD_NAME, ItemKillSuccessUserInfo.class);
+
+                        // 设置TTL
+                        messageProperties.setExpiration(env.getProperty("mq.kill.item.success.kill.expire"));
+                        return message;
+                    });
+                }
+            }
+        } catch (Exception e) {
+            log.error("秒杀成功生成抢购订单，发送消息进入死信队列，等待一定时间失效超时未支付的订单发生异常，消息为{}",
+                    orderCode, e.fillInStackTrace());
+        }
+    }
 }

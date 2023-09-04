@@ -2,6 +2,8 @@ package com.xiaoxiao.server.service;
 
 import com.xiaoxiao.model.dto.ItemKillSuccessUserInfo;
 import com.xiaoxiao.model.dto.MailDto;
+import com.xiaoxiao.model.entity.ItemKillSuccess;
+import com.xiaoxiao.model.mapper.ItemKillSuccessMapper;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
@@ -24,6 +26,9 @@ public class RabbitReceiverService {
     @Resource
     private Environment env;
 
+    @Resource
+    private ItemKillSuccessMapper itemKillSuccessMapper;
+
     /**
      * 接收信息
      * @param info
@@ -43,6 +48,27 @@ public class RabbitReceiverService {
 
         } catch (Exception e) {
             log.error("秒杀异步邮件通知-接收消息-发生异常：", e.fillInStackTrace());
+        }
+    }
+
+    /**
+     * 用户秒杀商品成功，超时未支付
+     * @param info
+     */
+    @RabbitListener(queues = {"${mq.kill.item.success.kill.dead.real.queue}"},containerFactory = "singleListenerContainer")
+    public void consumeExpireOrder(ItemKillSuccessUserInfo info){
+        try {
+            log.info("用户秒杀商品成功，超时未支付-接收消息:{}", info);
+
+            if (info != null) {
+                ItemKillSuccess itemKillSuccess = itemKillSuccessMapper.selectByPrimaryKey(info.getCode());
+                if (itemKillSuccess.getStatus().intValue() == 0) {
+                    itemKillSuccessMapper.expireOrder(info.getCode());
+                }
+            }
+
+        } catch (Exception e) {
+            log.error("用户秒杀商品成功，超时未支付-发生异常：", e.fillInStackTrace());
         }
     }
 }

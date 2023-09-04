@@ -101,7 +101,6 @@ public class RabbitmqConfig {
 
 
     //构建秒杀成功之后-订单超时未支付的死信队列消息模型
-
     @Bean
     public Queue successKillDeadQueue(){
         Map<String, Object> argsMap= Maps.newHashMap();
