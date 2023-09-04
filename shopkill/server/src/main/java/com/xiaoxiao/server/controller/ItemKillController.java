@@ -3,11 +3,15 @@ package com.xiaoxiao.server.controller;
 import com.github.pagehelper.PageInfo;
 import com.xiaoxiao.api.utils.ResultUtils;
 import com.xiaoxiao.api.utils.ResultVo;
+import com.xiaoxiao.model.dto.ItemKillSuccessUserInfo;
 import com.xiaoxiao.model.dto.KillDto;
 import com.xiaoxiao.model.entity.ItemKill;
+import com.xiaoxiao.model.mapper.ItemKillSuccessMapper;
 import com.xiaoxiao.model.wrap.ItemKillParm;
 import com.xiaoxiao.server.service.IItemKillService;
 import jakarta.annotation.Resource;
+import org.apache.zookeeper.common.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -16,9 +20,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/itemkill")
 public class ItemKillController {
 
-    @Resource
+    @Autowired
     private IItemKillService itemKillService;
 
+    @Resource
+    private ItemKillSuccessMapper itemKillSuccessMapper;
 
     /**
      * 秒杀的核心逻辑
@@ -28,6 +34,24 @@ public class ItemKillController {
      */
     @PostMapping("/execute")
     public ResultVo execute(@RequestBody @Validated KillDto dto, BindingResult result){
+        if (result.hasErrors() || dto.getKillId()<=0){
+            return ResultUtils.error("非法的参数", 201);
+        }
+
+        Integer userId=dto.getUserId();
+
+        Boolean res = itemKillService.killItem(dto.getKillId(),userId);
+
+        if (!res) {
+            return ResultUtils.error("商品抢购完毕或不在抢购时间段内", -1);
+        }
+
+        return ResultUtils.success("抢购成功！");
+
+    }
+
+    @PostMapping("/execute/lock")
+    public ResultVo executeLock(@RequestBody @Validated KillDto dto, BindingResult result){
         if (result.hasErrors() || dto.getKillId()<=0){
             return ResultUtils.error("非法的参数", 201);
         }
@@ -56,5 +80,26 @@ public class ItemKillController {
         PageInfo<ItemKill> itemKillParmPageInfo = itemKillService.selectQuestionInfoListByCondition(itemKillParm);
 
         return ResultUtils.success("查询成功", itemKillParmPageInfo);
+    }
+
+    /**
+     * 查看订单详情
+     * @param orderNo 订单编号
+     * @return
+     */
+    @GetMapping("/record/detail")
+    public ResultVo killRecordDetail(@RequestParam("orderNo") String orderNo) {
+
+        if (StringUtils.isBlank(orderNo)) {
+            return ResultUtils.error("订单编号出错！");
+        }
+
+        ItemKillSuccessUserInfo info = itemKillSuccessMapper.selectByCode(orderNo);
+
+        if (info == null) {
+            return ResultUtils.error("未找到相应的订单!");
+        }
+
+        return ResultUtils.success("查询成功！", info);
     }
 }
