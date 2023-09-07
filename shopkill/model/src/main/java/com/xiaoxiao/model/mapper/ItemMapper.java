@@ -18,4 +18,6 @@ public interface ItemMapper {
     Boolean deleteById(@Param("id") Integer id);
 
     Item selectItemByItemId(@Param("id") Integer id);
+
+    boolean updateStockById(Item itemDao);
 }

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xiaoxiao.model.mapper.AdminMapper">
+
+    <select id="selectAdminByName" resultType="com.xiaoxiao.model.entity.Admin">
+        select id, user_name, password, phone, create_time, update_time
+        FROM admin
+        where user_name = #{userName}
+    </select>
+    <select id="selectAdminById" resultType="com.xiaoxiao.model.entity.Admin">
+        select id, user_name, password, phone, create_time, update_time
+        FROM admin
+        where id = #{userId}
+    </select>
+</mapper>

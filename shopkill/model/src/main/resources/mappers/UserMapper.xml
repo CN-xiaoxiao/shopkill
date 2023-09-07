@@ -21,7 +21,7 @@
     <update id="updateUserById">
         update user
         <set>
-            <if test="user_name != null">
+            <if test="userName != null">
                 user_name = #{userName},
             </if>
             <if test="password != null">
@@ -33,7 +33,7 @@
             <if test="email != null">
                 email = #{email},
             </if>
-            <if test="is_active != null">
+            <if test="isActive != null">
                 is_active = #{isActive},
             </if>
             update_time = #{updateTime}

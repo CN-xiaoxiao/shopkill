@@ -12,15 +12,23 @@
                         is_active = #{isActive}, create_time = #{createTime}, update_time = #{updateTime}
             where id = #{id}
     </update>
+    <update id="updateStockById">
+        update item
+            set stock = #{stock},
+                update_time = #{updateTime}
+        where id = #{id}
+    </update>
     <delete id="deleteById">
         delete from item where id = #{id}
     </delete>
 
     <select id="selectByPageAndCondition" resultType="com.xiaoxiao.model.entity.Item">
-        select id, name, code, stock, purchase_time, is_active, create_time, update_time from item
+        select
+            a.id, a.name, a.code, a.stock, a.purchase_time, a.is_active, a.create_time, a.update_time
+        from item AS a
         <where>
             <if test="name != null">
-                name like "%" #{name} "%"
+                a.name like "%" #{name} "%"
             </if>
         </where>
     </select>

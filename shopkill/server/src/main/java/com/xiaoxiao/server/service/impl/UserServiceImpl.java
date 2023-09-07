@@ -9,6 +9,8 @@ import com.xiaoxiao.server.service.IUserService;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -21,6 +23,7 @@ public class UserServiceImpl implements IUserService {
     public User selectByUserName(String userName) {
         return userMapper.selectByUserName(userName);
     }
+    private static final SimpleDateFormat FORMAT = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
 
     @Override
     public Boolean addUser(User user) {
@@ -30,6 +33,8 @@ public class UserServiceImpl implements IUserService {
         if (userDao != null) {
             return false;
         }
+
+        user.setCreateTime(new Date());
 
         return userMapper.insertUser(user);
     }

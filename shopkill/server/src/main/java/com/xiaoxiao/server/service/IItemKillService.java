@@ -19,4 +19,10 @@ public interface IItemKillService {
     boolean insertKillItem(ItemKill itemKill);
 
     boolean updateIsActive(Integer id);
+
+    PageInfo<ItemKill> selectQuestionInfoAllListByCondition(ItemKillParm itemKillParm);
+
+    boolean updateById(ItemKill itemKill);
+
+    boolean deleteItemKillByItemId(Integer itemId);
 }

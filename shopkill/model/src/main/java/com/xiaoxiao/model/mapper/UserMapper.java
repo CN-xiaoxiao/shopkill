@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface UserMapper {
 
-    User selectByUserName(@Param("username") String username);
+    User selectByUserName(@Param("userName") String userName);
 
     Boolean insertUser(User user);
 

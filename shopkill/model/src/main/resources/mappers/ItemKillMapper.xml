@@ -16,6 +16,28 @@
             set is_active = 0
         where item_id = #{id}
     </update>
+    <update id="updateKillItemByItemId">
+        update item_kill
+            <set>
+                <if test="total != null">
+                    total = #{total},
+                </if>
+                <if test="startTime != null">
+                    start_time = #{startTime},
+                </if>
+                <if test="endTime != null">
+                    end_time = #{endTime},
+                </if>
+                <if test="isActive != null">
+                    is_active = #{isActive},
+                </if>
+            </set>
+        where item_id = #{itemId}
+    </update>
+    <delete id="deleteItemKillByItemId">
+        delete from item_kill
+        where item_id = #{itemId}
+    </delete>
 
     <select id="selectByPageAndCondition" resultType="com.xiaoxiao.model.entity.ItemKill">
         select a.*, b.name AS itemName,
@@ -48,6 +70,32 @@
 
     <select id="selectOneById" resultType="com.xiaoxiao.model.entity.ItemKill">
         select id, item_id, total, start_time, end_time, is_active, create_time from item_kill
-        where item_id = #{killId}
+        where item_id = #{itemId}
+    </select>
+    <select id="findAllKills" resultType="com.xiaoxiao.model.entity.ItemKill">
+        select id, item_id, total, start_time, end_time, is_active, create_time from item_kill
+        where is_active = 1
+    </select>
+    <select id="selectAllByPageAndCondition" resultType="com.xiaoxiao.model.entity.ItemKill">
+        select a.*, b.name AS itemName,
+        (CASE WHEN (now() BETWEEN a.start_time AND a.end_time AND a.total >0)
+        THEN 1
+        ELSE 0
+        END) AS canKill
+        from item_kill AS a LEFT JOIN item AS b ON b.id = a.item_id
+        <where>
+            <if test="itemName != null">
+                b.name like "%" #{itemName} "%"
+            </if>
+        </where>
+        <where>
+            <if test="itemName != null">
+                name like "%" #{itemName} "%"
+            </if>
+        </where>
+    </select>
+    <select id="selectItemKillById" resultType="com.xiaoxiao.model.entity.ItemKill">
+        select id, item_id, total, start_time, end_time, is_active, create_time from item_kill
+        where id = #{id}
     </select>
 </mapper>
