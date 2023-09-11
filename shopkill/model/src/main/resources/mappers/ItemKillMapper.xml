@@ -3,8 +3,8 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.xiaoxiao.model.mapper.ItemKillMapper">
     <insert id="insertKillItem">
-        insert into item_kill (item_id, total, start_time, end_time, is_active, create_time)
-        VALUES (#{itemId}, #{total}, #{startTime}, #{endTime}, #{isActive}, #{createTime})
+        insert into item_kill (item_id, total, now_price, start_time, end_time, is_active, create_time)
+        VALUES (#{itemId}, #{total}, #{nowPrice} #{startTime}, #{endTime}, #{isActive}, #{createTime})
     </insert>
     <update id="updateKillItem">
         update item_kill
@@ -31,6 +31,9 @@
                 <if test="isActive != null">
                     is_active = #{isActive},
                 </if>
+                <if test="nowPrice != null">
+                    now_price = #{nowPrice},
+                </if>
             </set>
         where item_id = #{itemId}
     </update>
@@ -40,7 +43,7 @@
     </delete>
 
     <select id="selectByPageAndCondition" resultType="com.xiaoxiao.model.entity.ItemKill">
-        select a.*, b.name AS itemName,
+        select a.*, b.name AS itemName, b.price AS beforePrice,
                (CASE WHEN (now() BETWEEN a.start_time AND a.end_time AND a.total >0)
                    THEN 1
                 ELSE 0
@@ -57,7 +60,7 @@
     <select id="selectById" resultType="com.xiaoxiao.model.entity.ItemKill">
         SELECT
             a.*,
-            b.name AS itemName,
+            b.name AS itemName, b.price AS beforePrice,
             (
                 CASE WHEN (now() BETWEEN a.start_time AND a.end_time AND a.total > 0)
                    THEN 1
@@ -69,15 +72,15 @@
     </select>
 
     <select id="selectOneById" resultType="com.xiaoxiao.model.entity.ItemKill">
-        select id, item_id, total, start_time, end_time, is_active, create_time from item_kill
+        select id, item_id, total, now_price, start_time, end_time, is_active, create_time from item_kill
         where item_id = #{itemId}
     </select>
     <select id="findAllKills" resultType="com.xiaoxiao.model.entity.ItemKill">
-        select id, item_id, total, start_time, end_time, is_active, create_time from item_kill
+        select id, item_id, total, now_price, start_time, end_time, is_active, create_time from item_kill
         where is_active = 1
     </select>
     <select id="selectAllByPageAndCondition" resultType="com.xiaoxiao.model.entity.ItemKill">
-        select a.*, b.name AS itemName,
+        select a.*, b.name AS itemName, b.price AS beforePrice,
         (CASE WHEN (now() BETWEEN a.start_time AND a.end_time AND a.total >0)
         THEN 1
         ELSE 0
@@ -88,14 +91,9 @@
                 b.name like "%" #{itemName} "%"
             </if>
         </where>
-        <where>
-            <if test="itemName != null">
-                name like "%" #{itemName} "%"
-            </if>
-        </where>
     </select>
     <select id="selectItemKillById" resultType="com.xiaoxiao.model.entity.ItemKill">
-        select id, item_id, total, start_time, end_time, is_active, create_time from item_kill
+        select id, item_id, total, now_price, start_time, end_time, is_active, create_time from item_kill
         where id = #{id}
     </select>
 </mapper>

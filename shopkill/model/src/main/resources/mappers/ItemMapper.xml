@@ -3,13 +3,14 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.xiaoxiao.model.mapper.ItemMapper">
     <insert id="add">
-        insert into item (name, code, stock, purchase_time, is_active, create_time)
-        values (#{name}, #{code}, #{stock}, #{purchaseTime}, #{isActive}, #{createTime})
+        insert into item (name, code, stock, price, purchase_time, is_active, create_time)
+        values (#{name}, #{code}, #{stock}, #{price}, #{purchaseTime}, #{isActive}, #{createTime})
     </insert>
 
     <update id="updateById">
         update item set name = #{name}, code = #{code}, stock = #{stock}, purchase_time = #{purchaseTime},
-                        is_active = #{isActive}, create_time = #{createTime}, update_time = #{updateTime}
+                        is_active = #{isActive}, create_time = #{createTime}, update_time = #{updateTime},
+                        price = #{price}
             where id = #{id}
     </update>
     <update id="updateStockById">
@@ -24,7 +25,7 @@
 
     <select id="selectByPageAndCondition" resultType="com.xiaoxiao.model.entity.Item">
         select
-            a.id, a.name, a.code, a.stock, a.purchase_time, a.is_active, a.create_time, a.update_time
+            a.id, a.name, a.code, a.stock, a.price, a.purchase_time, a.is_active, a.create_time, a.update_time
         from item AS a
         <where>
             <if test="name != null">
@@ -33,11 +34,11 @@
         </where>
     </select>
     <select id="selectItemByItemName" resultType="com.xiaoxiao.model.entity.Item">
-        select id, name, code, stock, purchase_time, is_active, create_time, update_time from item
+        select id, name, code, stock, price, purchase_time, is_active, create_time, update_time from item
             where name = #{name}
     </select>
     <select id="selectItemByItemId" resultType="com.xiaoxiao.model.entity.Item">
-        select id, name, code, stock, purchase_time, is_active, create_time, update_time from item
+        select id, name, code, stock, price, purchase_time, is_active, create_time, update_time from item
             where id = #{id}
     </select>
 </mapper>

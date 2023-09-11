@@ -13,9 +13,11 @@ import com.xiaoxiao.server.service.IItemService;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 public class ItemServiceImpl implements IItemService {
@@ -57,12 +59,22 @@ public class ItemServiceImpl implements IItemService {
             return false;
         }
 
+        // 判断数据是否合法
+        if (item.getPrice() < 0 || item.getStock() < 0) {
+            return false;
+        }
+
         return itemMapper.add(item);
 
     }
 
     @Override
     public Boolean updateById(Item item) {
+
+        if (item.getPrice() < 0) {
+            return false;
+        }
+
         return itemMapper.updateById(item);
     }
 
@@ -71,6 +83,11 @@ public class ItemServiceImpl implements IItemService {
         return itemMapper.deleteById(id);
     }
 
+    /**
+     * 根据商品id查询商品
+     * @param id
+     * @return
+     */
     @Override
     public Item selectItemById(Integer id) {
         return itemMapper.selectItemByItemId(id);

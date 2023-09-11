@@ -17,4 +17,11 @@ public interface UserMapper {
     boolean removeUserById(@Param("userId") Integer userId);
 
     List<User> selectByPageAndCondition(UserParm userParm);
+
+    /**
+     * 根据用户ID查询用户
+     * @param id
+     * @return
+     */
+    User selectById(@Param("id") Integer id);
 }

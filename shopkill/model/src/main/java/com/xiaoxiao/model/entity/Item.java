@@ -13,6 +13,8 @@ public class Item {
 
     private String code;
 
+    private Double price;
+
     private Long stock;
 
     private Date purchaseTime;

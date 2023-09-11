@@ -27,4 +27,8 @@ public class ItemKill {
     private String itemName;
 
     private Integer canKill;
+
+    private Double nowPrice;
+
+    private Double beforePrice;
 }

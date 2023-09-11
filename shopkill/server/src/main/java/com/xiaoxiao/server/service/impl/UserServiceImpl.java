@@ -42,7 +42,7 @@ public class UserServiceImpl implements IUserService {
     @Override
     public boolean updateById(User user) {
 
-        User userDao = userMapper.selectByUserName(user.getUserName());
+        User userDao = userMapper.selectById(user.getId());
 
         if (userDao == null) {
             return false;

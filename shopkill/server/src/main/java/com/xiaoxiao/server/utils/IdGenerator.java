@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.LongAdder;
  */
 public class IdGenerator {
     // 起始时间戳
-    private static final long START_STAMP = DateUtil.get("2023-1-1").getTime();
+    private static final long START_STAMP = DateUtil.get("2023-1-1 00:00:00").getTime();
 
     private static final long DATA_CENTER_BIT = 5L;
     private static final long MACHINE_BIT = 5L;

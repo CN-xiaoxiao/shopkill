@@ -12,6 +12,7 @@ import com.xiaoxiao.model.mapper.ItemMapper;
 import com.xiaoxiao.model.wrap.ItemKillParm;
 import com.xiaoxiao.server.service.IItemKillService;
 import com.xiaoxiao.server.service.RabbitSenderService;
+import com.xiaoxiao.server.utils.DateUtil;
 import com.xiaoxiao.server.utils.IdGenerator;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +27,7 @@ import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -295,13 +297,25 @@ public class ItemKillServiceImpl implements IItemKillService {
         int total = itemKill.getTotal();
         Item itemDao = itemMapper.selectItemByItemName(itemKill.getItemName());
 
-        if (total > itemDao.getStock()) {
+        // 判断容量（秒杀商品的数量）是否合法
+        if (total > itemDao.getStock() || total < 0) {
             return false;
         }
 
+        // 判断当前商品是否已经在秒杀队列中
         if (itemKill.getItemName() == null ||
                 itemKill.getItemName().equals("") ||
                 !itemDao.getName().equals(itemKill.getItemName())) {
+            return false;
+        }
+
+        // 判断秒杀日期是否合法
+        if (!dateIsValid(itemKill)) {
+            return false;
+        }
+
+        // 判断是否填写秒杀价格
+        if (itemKill.getNowPrice() < 0) {
             return false;
         }
 
@@ -316,6 +330,15 @@ public class ItemKillServiceImpl implements IItemKillService {
         boolean flag = itemMapper.updateStockById(itemDao);
 
         return itemKillMapper.insertKillItem(itemKill) && flag;
+    }
+
+    /**
+     * 判断日期是否合法
+     * @param itemKill
+     * @return
+     */
+    private boolean dateIsValid(ItemKill itemKill) {
+        return DateUtil.isOrder(itemKill.getStartTime(), itemKill.getEndTime());
     }
 
     @Override
