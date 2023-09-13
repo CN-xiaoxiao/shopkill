@@ -37,6 +37,11 @@
             </set>
         where item_id = #{itemId}
     </update>
+    <update id="updateActiveById">
+        update item_kill
+        set is_active = #{isActive}
+        where item_id = #{itemId};
+    </update>
     <delete id="deleteItemKillByItemId">
         delete from item_kill
         where item_id = #{itemId}

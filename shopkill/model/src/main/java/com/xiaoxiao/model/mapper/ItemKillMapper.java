@@ -41,4 +41,6 @@ public interface ItemKillMapper {
     ItemKill selectItemKillById(@Param("id") Integer id);
 
     boolean deleteItemKillByItemId(@Param("itemId") Integer itemId);
+
+    boolean updateActiveById(@Param("isActive") Integer isActive, @Param("itemId") Integer itemId);
 }

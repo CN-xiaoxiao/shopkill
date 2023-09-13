@@ -9,6 +9,9 @@ import com.xiaoxiao.server.service.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
+import java.util.Objects;
+
 /**
  * 用户管理
  */
@@ -26,13 +29,46 @@ public class UserController {
      */
     @PostMapping("/login")
     public ResultVo login(@RequestBody User user) {
-        User userDao = userService.selectByUserName(user.getUserName());
+        User userDao = userService.selectByUserName(user.getUsername());
 
         if (userDao == null || !userDao.getPassword().equals(user.getPassword())) {
             return ResultUtils.error("登录失败！账号或密码错误");
         }
 
-        return ResultUtils.success("登录成功！", user.getId());
+        return ResultUtils.success("登录成功！", userDao.getId());
+    }
+
+    @GetMapping("/getInfo")
+    public ResultVo getInfo(Integer id){
+        User user = userService.getUserById(id);
+
+        return ResultUtils.success("查询成功",user.getUsername());
+    }
+
+    @PostMapping("/register")
+    public ResultVo register(@RequestBody User user) {
+        if ("".equals(user.getUsername()) || user.getUsername()==null) {
+            return ResultUtils.error("用户名错误！");
+        }
+        if (!Objects.equals(user.getPassword(), user.getRepassword())
+                || user.getPassword() == null
+                || "".equals(user.getPassword())) {
+            return ResultUtils.error("密码不一致！");
+        }
+        if ("".equals(user.getEmail()) || user.getEmail() == null) {
+            return ResultUtils.error("邮箱错误！");
+        }
+        if ("".equals(user.getPhone()) || user.getPhone()==null) {
+            return ResultUtils.error("手机号为空！");
+        }
+
+        boolean flag = userService.addUser(user);
+
+        if (!flag) {
+            return ResultUtils.error("注册失败！");
+        }
+
+        return ResultUtils.success("注册成功!");
     }
 
     /**

@@ -28,13 +28,14 @@ public class UserServiceImpl implements IUserService {
     @Override
     public Boolean addUser(User user) {
 
-        User userDao = userMapper.selectByUserName(user.getUserName());
+        User userDao = userMapper.selectByUserName(user.getUsername());
 
         if (userDao != null) {
             return false;
         }
 
         user.setCreateTime(new Date());
+        user.setIsActive((byte) 1);
 
         return userMapper.insertUser(user);
     }
@@ -65,5 +66,11 @@ public class UserServiceImpl implements IUserService {
         List<User> sysUsers = userMapper.selectByPageAndCondition(userParm);
         //3。封装分页结果到PageInfo中
         return new PageInfo<>(sysUsers, 10);
+    }
+
+    @Override
+    public User getUserById(Integer id) {
+
+        return userMapper.selectById(id);
     }
 }

@@ -14,4 +14,6 @@ public interface IUserService {
     boolean removeById(Integer userId);
 
     PageInfo<User> selectUserInfoListByCondition(UserParm userParm);
+
+    User getUserById(Integer id);
 }

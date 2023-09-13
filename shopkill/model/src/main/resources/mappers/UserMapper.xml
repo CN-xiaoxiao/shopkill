@@ -5,7 +5,7 @@
     
     <resultMap id="user" type="com.xiaoxiao.model.entity.User">
         <id column="id" property="id"/>
-        <result column="user_name" property="userName"/>
+        <result column="user_name" property="username"/>
         <result column="password" property="password"/>
         <result column="phone" property="phone"/>
         <result column="email" property="email"/>
@@ -16,13 +16,13 @@
 
     <insert id="insertUser">
         insert into user (user_name, password, phone, email, is_active, create_time)
-            VALUES (#{userName}, #{password}, #{phone}, #{email}, #{isActive}, #{createTime})
+            VALUES (#{username}, #{password}, #{phone}, #{email}, #{isActive}, #{createTime})
     </insert>
     <update id="updateUserById">
         update user
         <set>
             <if test="userName != null">
-                user_name = #{userName},
+                user_name = #{username},
             </if>
             <if test="password != null">
                 password = #{password},
@@ -53,7 +53,7 @@
         select id, user_name, password, phone, email, is_active, create_time, update_time from user
         <where>
             <if test="userName != null">
-                user_name like "%" #{userName} "%"
+                user_name like "%" #{username} "%"
             </if>
         </where>
     </select>

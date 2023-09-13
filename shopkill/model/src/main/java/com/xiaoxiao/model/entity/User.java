@@ -8,7 +8,7 @@ import java.util.Date;
 @Data
 public class User {
     private Integer id;
-    private String userName;
+    private String username;
     private String password;
     private String phone;
     private String email;
@@ -18,4 +18,6 @@ public class User {
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
     private Date updateTime;
+
+    private String repassword;
 }

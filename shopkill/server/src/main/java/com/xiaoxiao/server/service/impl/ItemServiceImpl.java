@@ -12,6 +12,7 @@ import com.xiaoxiao.model.wrap.ItemParm;
 import com.xiaoxiao.server.service.IItemService;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.HashMap;
@@ -69,11 +70,19 @@ public class ItemServiceImpl implements IItemService {
     }
 
     @Override
+    @Transactional
     public Boolean updateById(Item item) {
 
         if (item.getPrice() < 0) {
             return false;
         }
+
+        Item itemDao = itemMapper.selectItemByItemId(item.getId());
+
+        if (!Objects.equals(item.getIsActive(), itemDao.getIsActive()) && item.getIsActive() == 0) {
+            boolean flag = itemKillMapper.updateActiveById(0, item.getId());
+        }
+
 
         return itemMapper.updateById(item);
     }

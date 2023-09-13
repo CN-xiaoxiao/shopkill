@@ -17,6 +17,7 @@ public class Item {
 
     private Long stock;
 
+    @JsonFormat(pattern = "yyyy-MM-dd",timezone = "GMT+8")
     private Date purchaseTime;
 
     private Integer isActive;
