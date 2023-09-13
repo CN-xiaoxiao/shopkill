@@ -56,7 +56,14 @@
             <el-input v-model="addModel.stock"></el-input>
           </el-form-item>
           <el-form-item prop="purchaseTime" label="采购时间">
-            <el-input v-model="addModel.purchaseTime"></el-input>
+            <el-date-picker
+              v-model="addModel.purchaseTime"
+              type="date"
+              value-format="yyyy-MM-dd"
+              format="yyyy-MM-dd"
+              placeholder="选择日期"
+            >
+            </el-date-picker>
           </el-form-item>
           <el-form-item prop="isActive" label="是否有效">
             <el-input v-model="addModel.isActive"></el-input>
@@ -69,6 +76,7 @@
       <el-table-column prop="id" label="id"></el-table-column>
       <el-table-column prop="name" label="商品名称"></el-table-column>
       <el-table-column prop="code" label="商品编码"></el-table-column>
+      <el-table-column prop="price" label="价格"></el-table-column>
       <el-table-column prop="stock" label="库存"></el-table-column>
       <el-table-column prop="isActive" label="是否上架"></el-table-column>
       <!-- <el-table-column prop="isKill" label="是否秒杀"></el-table-column> -->
@@ -109,7 +117,7 @@
 
 <script>
 import SysDialog from "@/components/system/SysDialog.vue";
-import {getListApi, editApi, addApi, deleteApi} from "@/api/item.js"
+import { getListApi, editApi, addApi, deleteApi } from "@/api/item.js";
 
 export default {
   components: { SysDialog },
@@ -168,6 +176,7 @@ export default {
         purchaseTime: "",
         isActive: "",
         isKill: "",
+        price: "",
       },
 
       // 弹框属性
@@ -196,7 +205,6 @@ export default {
   },
 
   methods: {
-
     // 页数改变时触发
     currentChange(val) {
       // console.log(val);
@@ -216,10 +224,10 @@ export default {
     async deleteBtn(row) {
       console.log(row);
       // 信息确认提示
-      let confirm = await this.$myconfirm('确定删除该数据吗？');
+      let confirm = await this.$myconfirm("确定删除该数据吗？");
       // console.log(confirm);
       if (confirm) {
-        let res = await deleteApi({id:row.id});
+        let res = await deleteApi({ id: row.id });
         if (res && res.code === 200) {
           // 信息提示
           this.$message(res.msg);
@@ -233,7 +241,7 @@ export default {
     editBtn(row) {
       console.log(row);
       // 设置弹框属性
-      this.addDialog.title = "编辑用户";
+      this.addDialog.title = "编辑商品";
       this.addDialog.visible = true;
       // 数据回显
       this.$objCoppy(row, this.addModel);
@@ -255,9 +263,9 @@ export default {
     // 新增按钮
     addBtn() {
       // 清空表单
-      this.$resetForm('addForm', this.addModel);
+      this.$resetForm("addForm", this.addModel);
       this.addModel.editType = "0";
-      this.addDialog.title = "新增用户";
+      this.addDialog.title = "新增商品";
       this.addDialog.visible = true;
     },
 
