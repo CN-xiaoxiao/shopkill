@@ -6,10 +6,11 @@ import com.xiaoxiao.api.utils.ResultVo;
 import com.xiaoxiao.model.entity.User;
 import com.xiaoxiao.model.wrap.UserParm;
 import com.xiaoxiao.server.service.IUserService;
+import com.xiaoxiao.server.utils.SaltMD5Util;
+import org.apache.zookeeper.common.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Date;
 import java.util.Objects;
 
 /**
@@ -29,9 +30,24 @@ public class UserController {
      */
     @PostMapping("/login")
     public ResultVo login(@RequestBody User user) {
+
+        String username = user.getUsername();
+        String password = user.getPassword();
+
+        if (StringUtils.isEmpty(username) || StringUtils.isEmpty(password)) {
+
+            return ResultUtils.error("用户名或密码不能为空！");
+        }
+
         User userDao = userService.selectByUserName(user.getUsername());
 
-        if (userDao == null || !userDao.getPassword().equals(user.getPassword())) {
+        if (userDao == null) {
+            return ResultUtils.error("登录失败！账号或密码错误");
+        }
+
+        boolean passwordFlag = SaltMD5Util.verifySaltPassword(password, userDao.getPassword());
+
+        if (!passwordFlag) {
             return ResultUtils.error("登录失败！账号或密码错误");
         }
 

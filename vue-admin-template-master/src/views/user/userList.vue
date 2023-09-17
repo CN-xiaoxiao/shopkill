@@ -8,7 +8,7 @@
       size="normal"
     >
       <el-form-item label="用户名">
-        <el-input v-model="parms.userName"></el-input>
+        <el-input v-model="parms.username"></el-input>
       </el-form-item>
       <el-form-item>
         <el-button icon="el-icon-search" @click="searchBtn">搜索</el-button>
@@ -34,7 +34,7 @@
     -->
     <el-table :height="tableHeight" :data="tableList" border stripe>
       <el-table-column prop="id" label="编号"></el-table-column>
-      <el-table-column prop="userName" label="用户名"></el-table-column>
+      <el-table-column prop="username" label="用户名"></el-table-column>
       <el-table-column prop="phone" label="手机号码"></el-table-column>
       <el-table-column prop="email" label="邮箱地址"></el-table-column>
       <el-table-column align="center" width="180" label="操作">
@@ -101,8 +101,8 @@
           <el-form-item prop="email" label="邮箱">
             <el-input v-model="addModel.email"></el-input>
           </el-form-item>
-          <el-form-item prop="userName" label="用户名">
-            <el-input v-model="addModel.userName"></el-input>
+          <el-form-item prop="username" label="用户名">
+            <el-input v-model="addModel.username"></el-input>
           </el-form-item>
           <el-form-item prop="password" label="密码">
             <el-input v-model="addModel.password" v-if="this.addModel.editType === '1'" :disabled=true></el-input>
@@ -143,7 +143,7 @@ export default {
             required: true,
           },
         ],
-        userName: [
+        username: [
           {
             trigger: "change",
             message: "请填写用户名",
@@ -164,7 +164,7 @@ export default {
         editType: "", // 0: 新增 1: 编辑
         phone: "",
         email: "",
-        userName: "",
+        username: "",
         password: "",
       },
       // 弹框属性
@@ -175,7 +175,7 @@ export default {
         visible: false,
       },
       parms: {
-        usernNme: "",
+        username: "",
         currentPage: 1, // 从第几页开始
         pageSize: 10, // 每页查询的条数
         total: 0, // 总条数
@@ -249,7 +249,7 @@ export default {
     },
     // 重置按钮
     resetBtn() {
-      this.parms.userName = "";
+      this.parms.username = "";
       this.getList();
     },
     // 新增按钮
